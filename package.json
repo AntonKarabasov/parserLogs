@@ -14,5 +14,9 @@
         "dev": "encore dev",
         "watch": "encore dev --watch",
         "build": "encore production --progress"
+    },
+    "dependencies": {
+        "bootstrap": "^5.2.0-beta1",
+        "chart.js": "^3.8.0"
     }
 }

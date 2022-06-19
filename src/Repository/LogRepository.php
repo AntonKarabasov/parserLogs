@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Log;
+use App\Entity\UserAgent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Query\Parameter;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -38,6 +41,118 @@ class LogRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+	public function getDates(): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT DATE(l.datetime) AS day
+            FROM App\Entity\Log AS l
+            GROUP BY day
+            ORDER BY day ASC'
+		);
+
+		return $query->getResult();
+	}
+
+	public function getRequestsByDate($date): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT DATE(l.datetime) AS date, COUNT(l.id) AS requests
+            FROM App\Entity\Log AS l
+            WHERE DATE(l.datetime) = :date
+            GROUP BY date'
+		)->setParameter('date', $date);
+
+		return $query->getResult();
+	}
+
+	public function getMostPopularBrowserByDate($date): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT u.browser AS browser, COUNT(l.id) AS count_requests
+            FROM App\Entity\Log   AS l
+            JOIN App\Entity\UserAgent AS u WITH u.id = l.userAgent
+            WHERE NOT u.browser = :browser AND DATE(l.datetime) = :date 
+            GROUP BY browser
+            ORDER BY count_requests DESC'
+		)->setParameters(new ArrayCollection([
+			new Parameter('browser', 'unknown'),
+			new Parameter('date', $date)
+		]))->setMaxResults(1);
+
+		return $query->getResult();
+	}
+
+	public function getMostPopularUrlByDate($date): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT l.url AS url, COUNT(l.id) AS count_requests
+            FROM App\Entity\Log   AS l
+            WHERE DATE(l.datetime) = :date 
+            GROUP BY url
+            ORDER BY count_requests DESC'
+		)->setParameter('date', $date)->setMaxResults(1);
+
+		return $query->getResult();
+	}
+
+	public function getRequestPerDay(): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT DATE(l.datetime) AS day, COUNT(l.id) AS requests
+            FROM App\Entity\Log AS l
+            GROUP BY day
+            ORDER BY day ASC'
+		);
+
+		return $query->getResult();
+	}
+
+	public function getRequestPerDayByBrowser(string $browser): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT DATE(l.datetime) AS day, u.browser AS browser, COUNT(l.id) AS count_requests
+            FROM App\Entity\Log   AS l
+            JOIN App\Entity\UserAgent AS u WITH u.id = l.userAgent
+            WHERE u.browser = :browser
+            GROUP BY day
+            ORDER BY day ASC'
+		)->setParameter('browser', $browser);
+
+		return $query->getResult();
+	}
+
+	public function getMostPopularBrowsers(int $limit): array
+	{
+		$entityManager = $this->getEntityManager();
+
+		$query = $entityManager->createQuery(
+			'SELECT u.browser AS browser, COUNT(l.id) AS count_requests
+            FROM App\Entity\Log   AS l
+            JOIN App\Entity\UserAgent AS u WITH u.id = l.userAgent
+            WHERE NOT u.browser = :browser
+            GROUP BY u.browser
+            ORDER BY count_requests DESC'
+		)->setParameter('browser', 'unknown')->setMaxResults($limit);
+
+//		$query = $entityManager->createQueryBuilder('u')
+//			->select('u.browser')
+//			->from( UserAgent::class, 'u');
+
+		return $query->getResult();
+	}
 
 //    /**
 //     * @return Log[] Returns an array of Log objects

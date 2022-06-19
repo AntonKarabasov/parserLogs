@@ -1,0 +1,30 @@
+<div class="table-responsive">
+    <table class="table table-bordtable table-stripedered" id="main_table">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Число запросов</th>
+            <th>Самый популярный URL</th>
+            <th>Самый популярный браузер</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for data in mostPopularDataForTable %}
+            <tr>
+                <td>
+                    {{ data.date }}
+                </td>
+                <td>
+                    {{ data.requests }}
+                </td>
+                <td>
+                    {{ data.url }}
+                </td>
+                <td>
+                    {{ data.browser }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

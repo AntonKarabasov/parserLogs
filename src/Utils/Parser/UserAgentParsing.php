@@ -23,7 +23,7 @@ class UserAgentParsing
 	{
 		$parsedUserAgent = new Parser($userAgent);
 		$os = $parsedUserAgent->os->toString();
-		$browser = $parsedUserAgent->browser->toString();
+		$browser = $parsedUserAgent->browser->getName();
 		$architecture = $this->parseArhitecture($userAgent);
 
 		if ($os === '') {
